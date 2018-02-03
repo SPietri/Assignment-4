@@ -1,0 +1,146 @@
+#Here we go again learners!!!
+
+#I will probaly do all my blog posts like this because it's easier and you could run the
+#code directly from the blog to the R console. 
+
+#So, my HW assignment was to basically major a data set and create a box plot and histogram
+#for two elements of the data set. 
+#I first need to create my chore list:
+#1) label the data set
+#2) change the colums with the words good, bad, and low to 1 and 0. 
+#3) create a box plot and histogram side by side for BP's 
+#4) create a box plot and histogram side for MD's recommendations 
+#5) draw inferences from the graphs 
+#6) post on GitHub
+
+#OK, Let's do this thing! 
+
+########################
+### Form the Data ####
+########################
+
+#I am naming it hospital_data
+#"0.6","103","bad","low","low”
+#"0.3","87","bad","low","high”
+#"0.4","32","bad","high","low”
+#"0.4","42","bad","high","high"
+#"0.2","59","good","low","low”
+#"0.6","109","good","low","high”
+#"0.3","78","good","high","low”
+#"0.4","205","good","high","high”
+#"0.9","135",”NA","high","high"
+#"0.2","176",”bad","high","high”
+
+#Now I am putting them all in vectors and creating a data frame.
+# 1 = bad, good = 0
+# 0 = low, high = 1
+freq <- c(0.6, 0.3, 0.4, 0.4, 0.2, 0.6, 0.3, 0.4, 0.9,0.2)
+bp <- c(103, 87, 32, 42, 59, 109, 78, 205, 135, 176)
+first <- c(1, 1, 1, 1, 0, 0, 0, 0, NA, 1)
+second <- c(0, 0, 1, 1, 0, 0, 1, 1, 1, 1)
+final <- c(0, 1, 0, 1, 0, 1, 0, 1, 1, 1)
+hospital_data <- data.frame(freq, bp, first, second, final)
+hospital_data
+
+#Displayed below is the data frame, hospital_data, combined
+#freq  bp first second final
+#1   0.6 103     1      0     0
+#2   0.3  87     1      0     1
+#3   0.4  32     1      1     0
+#4   0.4  42     1      1     1
+#5   0.2  59     0      0     0
+#6   0.6 109     0      0     1
+#7   0.3  78     0      1     0
+#8   0.4 205     0      1     1
+#9   0.9 135    NA      1     1
+#10  0.2 176     1      1     1
+
+###############################
+### Creating the Box Plots ####
+###############################
+
+#I'm going to do it for the bp or blood pressure of the patients first. 
+# I will use the boxplot() function 
+#I also need to isolate that column using $
+bp2 <- (hospital_data$bp)
+bp_box <- boxplot(bp2, main ="Blood Pressure of Paitients who entered the hospital ", ylab = "Blood Pressure")
+#Let's get some data from it. 
+bp_stats <- quantile(bp2, probs =c(0, 0.25, 0.50, 0.75, 1))
+bp_stats
+#0%    25%    50%    75%   100% 
+#32.00  63.75  95.00 128.50 205.00 
+
+#Now that we know the basics to the box plot function I am going to make 
+#a side by side box plot display ofbp and the doctors evaluations represented 
+#by first, second, and final. 
+
+##############################
+#### Second box plot and #####
+## getting around NA values ##
+##############################
+
+#I have to add the last three colums and make a row of that to base the 
+#box plot and eventually the histogram on. 
+hospital_data$total_evals <- rowSums(hospital_data[1:10, 3:5], na.rm =T)
+hospital_data
+#   freq  bp first second final total_evals
+#1   0.6 103     1      0     0           1
+#2   0.3  87     1      0     1           2
+#3   0.4  32     1      1     0           2
+#4   0.4  42     1      1     1           3
+#5   0.2  59     0      0     0           0
+#6   0.6 109     0      0     1           1
+#7   0.3  78     0      1     0           1
+#8   0.4 205     0      1     1           2
+#9   0.9 135    NA      1     1           2
+#10  0.2 176     1      1     1           3
+hospital_box <- boxplot(hospital_data$bp~hospital_data$final, ylabs="Blood Pressure", xlabs= 
+                          "Final MD Evaluation", main = "Blood Pressure of Patients Split 
+                        by Decision to Admit to EU",  col = c("green", "red"))
+#Let's get some data again. 
+quantile(unlist(hospital_box), probs=c(0, 0.25, 0.5, 0.75, 1))
+#The plot comes out really ugly so I downloaded ggplot2. 
+#when you put box plots side by side you break up the distobution of one variable by another categorical 
+#variable (source provided below as (1)).
+#Insert ggplot pic
+
+#There are many components to a ggplot graph. See the immage below. 
+hospital_box2 <- ggplot(hospital_data, aes(x=factor(final), y= bp, fill=(admission))) +geom_boxplot()+ 
+  labs(x= "Final Decision", y= "Blood Pressure", title = "Blood Pressure of Patients Split by Admission to EU")
+hospital_box2
+boxplot((hospital_data$first), hospital_data$bp)
+
+hospital_data <- hospital_data[,-6]
+hospital_data
+hospital_data$admission <- c("Not Admitted", "Admitted", "Not Admitted", "Admitted", "Not Admitted", "Admitted", "Not Admitted", "Admitted", "Admitted", "Admitted")
+hospital_data
+#   freq  bp first second final    admission
+#1   0.6 103     1      0     0 Not Admitted
+#2   0.3  87     1      0     1     Admitted
+#3   0.4  32     1      1     0 Not Admitted
+#4   0.4  42     1      1     1     Admitted
+#5   0.2  59     0      0     0 Not Admitted
+#6   0.6 109     0      0     1     Admitted
+#7   0.3  78     0      1     0 Not Admitted
+#8   0.4 205     0      1     1     Admitted
+#9   0.9 135    NA      1     1     Admitted
+#10  0.2 176     1      1     1     Admitted
+
+hospital_box2 <- ggplot(hospital_data, aes(x=factor(final), y= bp, fill=(admission))) +geom_boxplot()+ 
+  labs(x= "Final Decision", y= "Blood Pressure", title = "Blood Pressure of Patients Split by Admission to EU")
+hospital_box2
+
+hospital_box3 <- hospital_box2 <- ggplot(hospital_data, aes(x=factor(second), y= bp, fill=(admission), na.tm = T)) +geom_boxplot()+ 
+  labs(x= "Second Decision", y= "Blood Pressure", title = "Blood Pressure of Patients Split by Admission to EU") 
+hospital_box3
+
+hospital_box4 <- hospital_box2 <- ggplot(hospital_data, aes(x=factor(first), y= bp, fill=(admission))) +geom_boxplot()+ 
+  labs(x= "First Decision", y= "Blood Pressure", title = "Blood Pressure of Patients Split by Admission to EU") 
+hospital_box4
+
+
+#################################
+### Make the Histogram ##########
+#################################
+#Almost done, just have to make the histogram.  
+hospital_hist1 <- ggplot(data=hospital_data, aes(x=bp, fill = as.character(final))) + geom_histogram(binwidth = , bins = 20)
